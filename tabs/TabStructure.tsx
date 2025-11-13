@@ -69,8 +69,6 @@ export default function TabStructure({
 }: {
   onSelect?: (main: string, sub: string) => void;
 }) {
-
-  // Fix: load draggable positions safely AFTER mount
   const [mainPos, setMainPos] = useState({ x: 0, y: 0 });
   const [subPos, setSubPos] = useState({ x: 0, y: 0 });
 
@@ -114,7 +112,7 @@ export default function TabStructure({
           localStorage.setItem("mainTabsY", data.y.toString());
         }}
       >
-        <div className="absolute top-16 left-4 flex gap-2 bg-gray-100 border p-2 rounded shadow cursor-move z-50">
+        <div className="fixed top-16 left-4 flex gap-2 bg-gray-100 border p-2 rounded shadow cursor-move z-50">
           {Object.keys(tabStructure).map((main) => (
             <button
               key={main}
@@ -133,13 +131,14 @@ export default function TabStructure({
 
       {/* SUBTABS */}
       <Draggable
+        key={activeMain} // force re-render when main tab changes
         defaultPosition={subPos}
         onStop={(e, data) => {
           localStorage.setItem("subTabsX", data.x.toString());
           localStorage.setItem("subTabsY", data.y.toString());
         }}
       >
-        <div className="absolute top-32 left-4 flex gap-2 bg-gray-50 border p-2 rounded shadow cursor-move z-40">
+        <div className="fixed top-32 left-4 flex gap-2 bg-gray-50 border p-2 rounded shadow cursor-move z-40">
           {tabStructure[activeMain].map((sub) => (
             <button
               key={sub}
