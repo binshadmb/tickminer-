@@ -1,9 +1,7 @@
-
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Draggable from "react-draggable";
-
 
 // === Tab structure data ===
 export const tabStructure: Record<string, string[]> = {
@@ -66,25 +64,30 @@ export const tabStructure: Record<string, string[]> = {
   ],
 };
 
-// === Helpers for persistence ===
-const getSavedPosition = (key: string) => {
-  if (typeof window === "undefined") return { x: 0, y: 0 };
-  const x = parseInt(localStorage.getItem(`${key}X`) || "0", 10);
-  const y = parseInt(localStorage.getItem(`${key}Y`) || "0", 10);
-  return { x, y };
-};
-
-const savePosition = (key: string, data: { x: number; y: number }) => {
-  localStorage.setItem(`${key}X`, data.x.toString());
-  localStorage.setItem(`${key}Y`, data.y.toString());
-};
-
-// === Main component ===
 export default function TabStructure({
   onSelect,
 }: {
   onSelect?: (main: string, sub: string) => void;
 }) {
+
+  // Fix: load draggable positions safely AFTER mount
+  const [mainPos, setMainPos] = useState({ x: 0, y: 0 });
+  const [subPos, setSubPos] = useState({ x: 0, y: 0 });
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setMainPos({
+        x: parseInt(localStorage.getItem("mainTabsX") || "0", 10),
+        y: parseInt(localStorage.getItem("mainTabsY") || "0", 10),
+      });
+
+      setSubPos({
+        x: parseInt(localStorage.getItem("subTabsX") || "0", 10),
+        y: parseInt(localStorage.getItem("subTabsY") || "0", 10),
+      });
+    }
+  }, []);
+
   const [activeMain, setActiveMain] = useState<keyof typeof tabStructure>("LIVE STATUS");
   const [activeSub, setActiveSub] = useState(tabStructure["LIVE STATUS"][0]);
 
@@ -102,10 +105,14 @@ export default function TabStructure({
 
   return (
     <div className="w-screen h-screen bg-white text-gray-900 relative p-6">
-      {/* Main Tabs (draggable) */}
+
+      {/* MAIN TABS */}
       <Draggable
-        defaultPosition={getSavedPosition("mainTabs")}
-        onStop={(e, data) => savePosition("mainTabs", { x: data.x, y: data.y })}
+        defaultPosition={mainPos}
+        onStop={(e, data) => {
+          localStorage.setItem("mainTabsX", data.x.toString());
+          localStorage.setItem("mainTabsY", data.y.toString());
+        }}
       >
         <div className="absolute top-16 left-4 flex gap-2 bg-gray-100 border p-2 rounded shadow cursor-move z-50">
           {Object.keys(tabStructure).map((main) => (
@@ -124,10 +131,13 @@ export default function TabStructure({
         </div>
       </Draggable>
 
-      {/* Subtabs (draggable) */}
+      {/* SUBTABS */}
       <Draggable
-        defaultPosition={getSavedPosition("subTabs")}
-        onStop={(e, data) => savePosition("subTabs", { x: data.x, y: data.y })}
+        defaultPosition={subPos}
+        onStop={(e, data) => {
+          localStorage.setItem("subTabsX", data.x.toString());
+          localStorage.setItem("subTabsY", data.y.toString());
+        }}
       >
         <div className="absolute top-32 left-4 flex gap-2 bg-gray-50 border p-2 rounded shadow cursor-move z-40">
           {tabStructure[activeMain].map((sub) => (
@@ -147,7 +157,7 @@ export default function TabStructure({
         </div>
       </Draggable>
 
-      {/* Active Path */}
+      {/* ACTIVE BANNER */}
       <div className="flex-1 flex items-center justify-center text-2xl font-bold mt-48">
         <span style={{ color: "#FF0000" }}>
           {activeMain} → {activeSub}
