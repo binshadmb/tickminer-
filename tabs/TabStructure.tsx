@@ -1,5 +1,9 @@
+
+"use client";
+
 import React, { useState } from "react";
 import Draggable from "react-draggable";
+
 
 // === Tab structure data ===
 export const tabStructure: Record<string, string[]> = {
